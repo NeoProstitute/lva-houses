@@ -1,4 +1,4 @@
-import { timingSafeEqual } from "node:crypto";
+import { randomBytes, timingSafeEqual } from "node:crypto";
 import * as argon2 from "argon2";
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
@@ -9,6 +9,7 @@ import { env } from "../env.js";
 import { configuredSchool } from "../school.js";
 import type { AuthUser, Role } from "../types.js";
 import { passwordInput } from "../password.js";
+import { passwordRecoveryEnabled, sendPasswordResetEmail } from "../mail.js";
 
 const emailInput = z.string().trim().email().max(254).transform((email) => email.toLowerCase());
 const usernameInput = z.string().trim().toLowerCase().regex(/^[a-z0-9][a-z0-9._-]{2,30}$/);
@@ -25,6 +26,12 @@ const bootstrapInput = z.object({
   name: z.string().trim().min(2).max(120),
   username: usernameInput,
   email: emailInput,
+  password: passwordInput
+});
+
+const passwordResetRequestInput = z.object({ email: emailInput });
+const passwordResetInput = z.object({
+  token: z.string().regex(/^[A-Za-z0-9_-]{43}$/),
   password: passwordInput
 });
 
@@ -121,6 +128,97 @@ export async function authRoutes(app: FastifyInstance) {
     setSessionCookies(reply, session.accessToken, session.refreshToken);
     await writeAuditEvent({ schoolId: user.schoolId, actorId: user.id, action: "auth.login", targetType: "user", targetId: user.id });
     return reply.send({ user: publicUser(user) });
+  });
+
+  app.get("/api/v1/auth/password-recovery", async (_request, reply) => {
+    return reply.send({ enabled: passwordRecoveryEnabled });
+  });
+
+  app.post("/api/v1/auth/forgot-password", {
+    // A school may share one public IP address. Per-account throttling below
+    // protects inboxes without preventing an entire classroom from recovering
+    // access during the same hour.
+    config: { rateLimit: { max: 30, timeWindow: "1 hour" } }
+  }, async (request, reply) => {
+    if (!passwordRecoveryEnabled) return reply.code(503).send({ error: "Password recovery is not configured yet. Please contact your school administrator." });
+    const parsed = passwordResetRequestInput.safeParse(request.body);
+    if (!parsed.success) return reply.code(400).send({ error: "Enter a valid school email address" });
+
+    const school = await configuredSchool();
+    if (!school) return reply.code(503).send({ error: "The school has not been set up yet" });
+    const [account] = await sql<(AuthUser & { email: string; is_active: boolean; last_reset_at: Date | null })[]>`
+      SELECT u.id, u.school_id AS "schoolId", u.role, u.name, u.email, u.is_active,
+        (
+          SELECT created_at FROM password_reset_tokens
+          WHERE user_id = u.id AND created_at > now() - interval '15 minutes'
+          ORDER BY created_at DESC LIMIT 1
+        ) AS last_reset_at
+      FROM users u
+      WHERE u.school_id = ${school.id} AND u.email = ${parsed.data.email} LIMIT 1
+    `;
+    // Keep this response identical for unknown and inactive accounts to prevent account discovery.
+    if (!account || !account.is_active) return reply.send({ message: "If that address belongs to an active account, a reset link has been sent." });
+    // Do not turn password recovery into an inbox-spam tool. Keep the same
+    // generic response so this also does not reveal whether the email exists.
+    if (account.last_reset_at) return reply.send({ message: "If that address belongs to an active account, a reset link has been sent." });
+
+    const token = randomBytes(32).toString("base64url");
+    const issued = await sql.begin(async (tx) => {
+      // Lock this user before checking the throttle and issuing a token. Two
+      // simultaneous requests can otherwise send two valid reset links.
+      const [lockedAccount] = await tx<{ id: string; is_active: boolean }[]>`
+        SELECT id, is_active FROM users WHERE id = ${account.id} FOR UPDATE
+      `;
+      if (!lockedAccount?.is_active) return false;
+      const [recentReset] = await tx<{ id: string }[]>`
+        SELECT id FROM password_reset_tokens
+        WHERE user_id = ${account.id} AND created_at > now() - interval '15 minutes'
+        ORDER BY created_at DESC LIMIT 1
+      `;
+      if (recentReset) return false;
+      await tx`UPDATE password_reset_tokens SET used_at = now() WHERE user_id = ${account.id} AND used_at IS NULL`;
+      await tx`
+        INSERT INTO password_reset_tokens (user_id, token_hash, expires_at)
+        VALUES (${account.id}, ${hashToken(token)}, now() + interval '20 minutes')
+      `;
+      return true;
+    });
+    if (!issued) return reply.send({ message: "If that address belongs to an active account, a reset link has been sent." });
+    const delivered = await sendPasswordResetEmail(account.email, account.name, token);
+    if (!delivered) {
+      await sql`UPDATE password_reset_tokens SET used_at = now() WHERE user_id = ${account.id} AND used_at IS NULL`;
+      request.log.error({ userId: account.id }, "Password reset email delivery failed");
+      return reply.code(503).send({ error: "Password recovery is temporarily unavailable. Please try again later." });
+    }
+    await writeAuditEvent({ schoolId: account.schoolId, actorId: account.id, action: "auth.password_reset_requested", targetType: "user", targetId: account.id });
+    return reply.send({ message: "If that address belongs to an active account, a reset link has been sent." });
+  });
+
+  app.post("/api/v1/auth/reset-password", {
+    config: { rateLimit: { max: 5, timeWindow: "1 hour" } }
+  }, async (request, reply) => {
+    const parsed = passwordResetInput.safeParse(request.body);
+    if (!parsed.success) return reply.code(400).send({ error: "Use a valid reset link and a stronger password", details: parsed.error.flatten() });
+    const passwordHash = await argon2.hash(parsed.data.password, { type: argon2.argon2id });
+    const reset = await sql.begin(async (tx) => {
+      // A reset token is strictly single-use, even if two browser requests
+      // arrive at nearly the same moment.
+      const [lockedReset] = await tx<(AuthUser & { reset_id: string })[]>`
+        SELECT r.id AS reset_id, u.id, u.school_id AS "schoolId", u.role, u.name
+        FROM password_reset_tokens r JOIN users u ON u.id = r.user_id
+        WHERE r.token_hash = ${hashToken(parsed.data.token)} AND r.used_at IS NULL
+          AND r.expires_at > now() AND u.is_active = true
+        LIMIT 1 FOR UPDATE OF r
+      `;
+      if (!lockedReset) return null;
+      await tx`UPDATE users SET password_hash = ${passwordHash}, updated_at = now() WHERE id = ${lockedReset.id}`;
+      await tx`UPDATE password_reset_tokens SET used_at = now() WHERE user_id = ${lockedReset.id} AND used_at IS NULL`;
+      await tx`UPDATE refresh_sessions SET revoked_at = now() WHERE user_id = ${lockedReset.id} AND revoked_at IS NULL`;
+      return lockedReset;
+    });
+    if (!reset) return reply.code(400).send({ error: "This reset link is invalid or has expired. Request a new one." });
+    await writeAuditEvent({ schoolId: reset.schoolId, actorId: reset.id, action: "auth.password_reset_completed", targetType: "user", targetId: reset.id });
+    return reply.code(204).send();
   });
 
   app.post("/api/v1/auth/refresh", {

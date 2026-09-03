@@ -21,7 +21,7 @@ export default async function Home() {
       </section>
       <section className="dashboard-details" aria-label="How points work"><p><strong>Students</strong> see their points, achievements and category progress.</p><p><strong>Teachers</strong> recognise a contribution with a clear reason.</p><p><strong>Every point</strong> is recorded in a transparent ledger.</p></section>
       <div id="standings" className="board-wrap"><HouseBoard houses={leaderboard.houses} title="Every house, at a glance" isPreview={leaderboard.isPreview} /></div>
-      <footer><Logo /><p>© 2026 Oleksandr Vasyliukov (neoprostitute) · All rights reserved.</p><Link href="/terms">Terms of use</Link></footer>
+      <footer><Logo /><p>© 2026 Leonardo V Academy Houses</p></footer>
     </main>
   );
 }

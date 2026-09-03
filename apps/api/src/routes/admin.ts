@@ -3,6 +3,7 @@ import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { allowRoles, authenticate } from "../authorization.js";
 import { writeAuditEvent } from "../audit.js";
+import { canRemoveActiveAdmin, removesActiveAdmin } from "../admin-protection.js";
 import { sql } from "../db.js";
 import { passwordInput } from "../password.js";
 import { roles } from "../types.js";
@@ -38,6 +39,12 @@ const categoryInput = z.object({
 const updateCategoryInput = categoryInput.partial().extend({ isActive: z.boolean().optional() })
   .refine((input) => Object.keys(input).length > 0, "Provide a change");
 const idParams = z.object({ id: z.string().uuid() });
+
+class LastActiveAdminError extends Error {
+  constructor() {
+    super("At least one active administrator is required");
+  }
+}
 
 function invalid(reply: { code: (status: number) => { send: (body: unknown) => unknown } }, details: unknown) {
   return reply.code(400).send({ error: "Check the supplied information", details });
@@ -106,8 +113,8 @@ export async function administrationRoutes(app: FastifyInstance) {
     if (!parsed.success) return invalid(reply, parsed.error.flatten());
     const input = parsed.data;
     const actor = request.user;
-    const [existing] = await sql<{ id: string; role: string; house_id: string | null }[]>`
-      SELECT id, role, house_id FROM users WHERE id = ${params.data.id} AND school_id = ${actor.schoolId}
+    const [existing] = await sql<{ id: string; role: "student" | "teacher" | "admin"; house_id: string | null; is_active: boolean }[]>`
+      SELECT id, role, house_id, is_active FROM users WHERE id = ${params.data.id} AND school_id = ${actor.schoolId}
     `;
     if (!existing) return reply.code(404).send({ error: "User not found" });
     if (params.data.id === actor.id && input.isActive === false) return reply.code(400).send({ error: "You cannot deactivate your own account" });
@@ -123,22 +130,56 @@ export async function administrationRoutes(app: FastifyInstance) {
     }
     const passwordHash = input.password ? await argon2.hash(input.password, { type: argon2.argon2id }) : null;
     try {
-      const [updated] = await sql`
-        UPDATE users SET
-          name = COALESCE(${input.name ?? null}, name),
-          username = COALESCE(${input.username ?? null}, username),
-          email = COALESCE(${input.email ?? null}, email),
-          password_hash = COALESCE(${passwordHash}, password_hash),
-          role = COALESCE(${input.role ?? null}::user_role, role),
-          house_id = ${nextHouseId}::uuid,
-          is_active = COALESCE(${input.isActive ?? null}, is_active), updated_at = now()
-        WHERE id = ${params.data.id} AND school_id = ${actor.schoolId}
-        RETURNING id, name, username, email, role, house_id AS "houseId", is_active AS "isActive"
-      `;
-      if (input.password) await sql`UPDATE refresh_sessions SET revoked_at = now() WHERE user_id = ${updated.id} AND revoked_at IS NULL`;
+      const updated = await sql.begin(async (tx) => {
+        // Lock the edited account, then lock every active administrator before
+        // changing a role or active state. This makes the last-admin guard safe
+        // even if two administrators submit conflicting edits at the same time.
+        const [lockedExisting] = await tx<{ role: "student" | "teacher" | "admin"; is_active: boolean }[]>`
+          SELECT role, is_active FROM users
+          WHERE id = ${params.data.id} AND school_id = ${actor.schoolId}
+          FOR UPDATE
+        `;
+        if (!lockedExisting) throw new Error("User not found");
+        const lockedRequestedRole = input.role ?? lockedExisting.role;
+        const lockedRequestedActive = input.isActive ?? lockedExisting.is_active;
+        const changeRemovesAdmin = removesActiveAdmin({
+          existingRole: lockedExisting.role,
+          existingActive: lockedExisting.is_active,
+          requestedRole: lockedRequestedRole,
+          requestedActive: lockedRequestedActive
+        });
+        if (changeRemovesAdmin) {
+          const activeAdmins = await tx<{ id: string }[]>`
+            SELECT id FROM users
+            WHERE school_id = ${actor.schoolId} AND role = 'admin' AND is_active = true
+            FOR UPDATE
+          `;
+          if (!canRemoveActiveAdmin(activeAdmins.length, {
+            existingRole: lockedExisting.role,
+            existingActive: lockedExisting.is_active,
+            requestedRole: lockedRequestedRole,
+            requestedActive: lockedRequestedActive
+          })) throw new LastActiveAdminError();
+        }
+        const [result] = await tx`
+          UPDATE users SET
+            name = COALESCE(${input.name ?? null}, name),
+            username = COALESCE(${input.username ?? null}, username),
+            email = COALESCE(${input.email ?? null}, email),
+            password_hash = COALESCE(${passwordHash}, password_hash),
+            role = COALESCE(${input.role ?? null}::user_role, role),
+            house_id = ${nextHouseId}::uuid,
+            is_active = COALESCE(${input.isActive ?? null}, is_active), updated_at = now()
+          WHERE id = ${params.data.id} AND school_id = ${actor.schoolId}
+          RETURNING id, name, username, email, role, house_id AS "houseId", is_active AS "isActive"
+        `;
+        if (input.password) await tx`UPDATE refresh_sessions SET revoked_at = now() WHERE user_id = ${result.id} AND revoked_at IS NULL`;
+        return result;
+      });
       await writeAuditEvent({ schoolId: actor.schoolId, actorId: actor.id, action: "user.updated", targetType: "user", targetId: updated.id, metadata: { passwordReset: Boolean(input.password) } });
       return reply.send({ user: updated });
     } catch (error: unknown) {
+      if (error instanceof LastActiveAdminError) return reply.code(400).send({ error: error.message });
       if (typeof error === "object" && error && "code" in error && error.code === "23505") return reply.code(409).send({ error: "That email or username already belongs to this school" });
       throw error;
     }

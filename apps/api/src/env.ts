@@ -16,7 +16,18 @@ const environment = z.object({
   BOOTSTRAP_TOKEN: z.string().min(48),
   SCHOOL_SLUG: z.string().trim().toLowerCase().regex(/^[a-z0-9-]{3,48}$/),
   COOKIE_SECURE: z.enum(["true", "false"]).default("true").transform((value) => value === "true"),
-  TRUST_PROXY: z.enum(["true", "false"]).default("false").transform((value) => value === "true")
+  TRUST_PROXY: z.enum(["true", "false"]).default("false").transform((value) => value === "true"),
+  EMAIL_PROVIDER: z.enum(["disabled", "resend"]).default("disabled"),
+  RESEND_API_KEY: z.string().min(1).optional(),
+  EMAIL_FROM: z.string().min(3).max(254).optional(),
+  PASSWORD_RESET_URL: z.string().url().optional()
+}).superRefine((value, context) => {
+  if (value.EMAIL_PROVIDER === "resend" && !value.RESEND_API_KEY) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: "RESEND_API_KEY is required when email is enabled" });
+  }
+  if (value.EMAIL_PROVIDER === "resend" && !value.EMAIL_FROM) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: "EMAIL_FROM is required when email is enabled" });
+  }
 });
 
 export const env = environment.parse(process.env);
