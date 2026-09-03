@@ -1,0 +1,25 @@
+{
+  "name": "leonardo-v-academy-houses",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "npm@11.11.0",
+  "workspaces": [
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=22.15.0"
+  },
+  "scripts": {
+    "dev:api": "npm run dev --workspace=@leonardo-v-academy/api",
+    "dev:web": "npm run dev --workspace=@leonardo-v-academy/web",
+    "build": "npm run build --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "db:migrate": "npm run db:migrate --workspace=@leonardo-v-academy/api",
+    "test": "npm run test --workspace=@leonardo-v-academy/api",
+    "test:e2e": "playwright test --project=chromium-desktop --project=webkit-desktop --project=chromium-mobile --project=webkit-mobile",
+    "test:e2e:full": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.62.1"
+  }
+}
