@@ -10,6 +10,8 @@ import swaggerUi from "@fastify/swagger-ui";
 import { Redis } from "ioredis";
 import { closeDatabase, sql } from "./db.js";
 import { env } from "./env.js";
+import { accessCookie, refreshCookie } from "./auth.js";
+import { hasAllowedOrigin, hasValidCsrfToken } from "./csrf.js";
 import { administrationRoutes } from "./routes/admin.js";
 import { authRoutes } from "./routes/auth.js";
 import { awardRoutes } from "./routes/awards.js";
@@ -31,6 +33,22 @@ export async function createServer() {
     await closeDatabase();
   });
   await app.register(cookie);
+  app.addHook("onRequest", async (request, reply) => {
+    if (!new Set(["POST", "PUT", "PATCH", "DELETE"]).has(request.method)) return;
+
+    // Every browser write must originate from the configured web application.
+    // This also protects unauthenticated writes such as login from login-CSRF.
+    if (!hasAllowedOrigin(request, env.WEB_ORIGIN)) {
+      return reply.code(403).send({ error: "This request did not come from the school application" });
+    }
+
+    // If a session cookie is present, require a second, script-readable token.
+    // A third-party site cannot read that token or attach this custom header.
+    const hasSessionCookie = Boolean(request.cookies[accessCookie] || request.cookies[refreshCookie]);
+    if (hasSessionCookie && !hasValidCsrfToken(request)) {
+      return reply.code(403).send({ error: "Your security token is missing or expired. Refresh the page and try again." });
+    }
+  });
   await app.register(multipart, {
     limits: { files: 1, fields: 0, parts: 1, fileSize: 2 * 1024 * 1024 },
     throwFileSizeLimit: true

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import { apiUrl, type House } from "../lib/api";
+import { withCsrfHeader } from "../lib/csrf";
 import { Logo } from "./logo";
 import { ThemeToggle } from "./theme-toggle";
 
@@ -18,9 +19,11 @@ async function request<T>(path: string, options: RequestInit = {}, retry = true)
   const headers = new Headers(options.headers);
   const isFormData = typeof FormData !== "undefined" && options.body instanceof FormData;
   if (options.body && !isFormData && !headers.has("content-type")) headers.set("content-type", "application/json");
+  withCsrfHeader(headers, options.method);
   let response = await fetch(`${apiUrl}${path}`, { ...options, headers, credentials: "include" });
   if (response.status === 401 && retry) {
-    const refreshed = await fetch(`${apiUrl}/api/v1/auth/refresh`, { method: "POST", credentials: "include" });
+    const refreshHeaders = withCsrfHeader(new Headers(), "POST");
+    const refreshed = await fetch(`${apiUrl}/api/v1/auth/refresh`, { method: "POST", headers: refreshHeaders, credentials: "include" });
     if (refreshed.ok) response = await fetch(`${apiUrl}${path}`, { ...options, headers, credentials: "include" });
   }
   const body = response.status === 204 ? null : await response.json().catch(() => null);

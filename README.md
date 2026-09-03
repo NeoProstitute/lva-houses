@@ -50,7 +50,7 @@ The API health check is at `http://localhost:4000/health`; interactive API docum
 
 - Argon2id password hashing, short-lived HTTP-only access cookies and opaque, server-revocable refresh sessions.
 - Role checks are enforced on the API, not merely by hiding web controls.
-- Strict origin allow-list, security headers, request-size cap, input validation and shared Redis-backed rate limits.
+- Strict origin allow-list, CSRF tokens for browser writes, security headers, request-size cap, input validation and shared Redis-backed rate limits.
 - No default administrator, password, JWT secret, or database credential is committed to the project.
 - Users are deactivated rather than removed; corrections create linked reversing ledger entries and write audit events.
 - House images are stored with the school data (PNG, JPEG or WebP; maximum 2 MB), have their binary signature checked server-side, and are served with cache and content-type protections. This avoids trusting arbitrary third-party image links.

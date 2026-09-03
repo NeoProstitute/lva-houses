@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { apiUrl } from "../lib/api";
+import { withCsrfHeader } from "../lib/csrf";
 import { Logo } from "./logo";
 import { ThemeToggle } from "./theme-toggle";
 
@@ -12,7 +13,7 @@ async function send(path: string, body: unknown, extraHeaders: HeadersInit = {})
   const response = await fetch(`${apiUrl}${path}`, {
     method: "POST",
     credentials: "include",
-    headers: { "content-type": "application/json", ...extraHeaders },
+    headers: withCsrfHeader(new Headers({ "content-type": "application/json", ...extraHeaders }), "POST"),
     body: JSON.stringify(body)
   });
   const payload = response.status === 204 ? null : await response.json().catch(() => null);

@@ -1,6 +1,7 @@
 import { createHash, randomBytes } from "node:crypto";
 import type { FastifyReply } from "fastify";
 import { env } from "./env.js";
+import { createCsrfToken, csrfCookie } from "./csrf.js";
 import type { AuthUser } from "./types.js";
 
 export const accessCookie = "school_access";
@@ -33,12 +34,16 @@ export function setSessionCookies(
   };
   reply
     .setCookie(accessCookie, accessToken, { ...common, maxAge: accessLifetime })
-    .setCookie(refreshCookie, refreshToken, { ...common, maxAge: refreshLifetime });
+    .setCookie(refreshCookie, refreshToken, { ...common, maxAge: refreshLifetime })
+    // This deliberately is not HTTP-only: the web app copies it into the
+    // X-CSRF-Token header for unsafe requests. Authentication cookies remain
+    // HTTP-only and cannot be read by JavaScript.
+    .setCookie(csrfCookie, createCsrfToken(), { ...common, httpOnly: false, maxAge: refreshLifetime });
 }
 
 export function clearSessionCookies(reply: FastifyReply) {
   const common = { httpOnly: true, secure: env.COOKIE_SECURE, sameSite: "lax" as const, path: "/" };
-  reply.clearCookie(accessCookie, common).clearCookie(refreshCookie, common);
+  reply.clearCookie(accessCookie, common).clearCookie(refreshCookie, common).clearCookie(csrfCookie, { ...common, httpOnly: false });
 }
 
 export function publicUser(user: AuthUser) {
