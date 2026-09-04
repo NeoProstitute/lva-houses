@@ -4,7 +4,7 @@ import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import { apiUrl, type House } from "../lib/api";
 import { withCsrfHeader } from "../lib/csrf";
-import { presentationMode, presentationResponse, signOutForPresentation } from "../lib/presentation-demo";
+import { presentationMode, presentationPath, presentationResponse, signOutForPresentation } from "../lib/presentation-demo";
 import { Logo } from "./logo";
 import { ThemeToggle } from "./theme-toggle";
 
@@ -167,7 +167,7 @@ export function Portal() {
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Please sign in again."); } finally { setLoading(false); }
   }
   useEffect(() => { void load(); }, []);
-  async function signOut() { if (presentationMode) signOutForPresentation(); else await request("/api/v1/auth/logout", { method: "POST" }, false).catch(() => undefined); window.location.assign("/"); }
+  async function signOut() { if (presentationMode) { signOutForPresentation(); window.location.assign(presentationPath("/")); return; } await request("/api/v1/auth/logout", { method: "POST" }, false).catch(() => undefined); window.location.assign("/"); }
   if (loading) return <main className="loading-screen"><Logo /><p>Opening your portal…</p></main>;
   if (!user) return <main className="loading-screen"><Logo /><h1>Session needed</h1><p>{error}</p><Link className="button button-dark" href="/login">Sign in <span>→</span></Link></main>;
   const roleCopy = user.role === "student" ? "Your contribution, made visible." : user.role === "teacher" ? "Make recognition feel timely and specific." : "A clear system needs thoughtful stewardship.";

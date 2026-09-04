@@ -19,6 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       NEXT_PUBLIC_PRESENTATION_MODE: "true"
+      NEXT_PUBLIC_BASE_PATH: "/lva-houses"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

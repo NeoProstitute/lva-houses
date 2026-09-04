@@ -4,7 +4,7 @@ import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { apiUrl } from "../lib/api";
 import { withCsrfHeader } from "../lib/csrf";
-import { presentationMode, signInForPresentation } from "../lib/presentation-demo";
+import { presentationMode, presentationPath, signInForPresentation } from "../lib/presentation-demo";
 import { Logo } from "./logo";
 import { ThemeToggle } from "./theme-toggle";
 
@@ -38,7 +38,7 @@ export function AuthForm({ mode, resetToken }: { mode: Mode; resetToken?: string
         if (presentationMode) {
           const signedIn = signInForPresentation(String(fields.get("login") ?? ""), String(fields.get("password") ?? ""));
           if (!signedIn) throw new Error("Use one of the presentation accounts provided by the presenter.");
-          window.location.assign("/portal");
+          window.location.assign(presentationPath("/portal"));
           return;
         }
         await send("/api/v1/auth/login", { login: fields.get("login"), password: fields.get("password") });

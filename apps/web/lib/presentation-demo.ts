@@ -10,6 +10,11 @@ type PresentationUser = {
 const storageKey = "lva-presentation-user";
 
 export const presentationMode = process.env.NEXT_PUBLIC_PRESENTATION_MODE === "true";
+const presentationBasePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+
+export function presentationPath(path: string) {
+  return `${presentationBasePath}${path}`;
+}
 
 const accounts: Array<PresentationUser & { login: string; password: string }> = [
   { id: "demo-student", name: "Liliana Netland", role: "student", houseId: "curiositas", login: "liliana.netland", password: "LilianaHouse!2026" },
