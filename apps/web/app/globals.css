@@ -65,6 +65,7 @@ button:disabled { cursor: not-allowed; opacity: .66; }
 .updated { color: var(--muted); font-size: 12px; }
 .house-list { border-top: 1px solid var(--line); }
 .house-card-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.house-leaders { width: min(1180px, calc(100% - 48px)); margin: 72px auto 0; }.house-leader-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }.house-leader-card { display: flex; align-items: center; gap: 13px; min-width: 0; padding: 18px; border: 1px solid var(--line); border-top: 4px solid var(--house); border-radius: 15px; background: var(--card); }.house-leader-card .leader-mark { flex: 0 0 auto; background: var(--house); }.house-leader-card p { margin: 0 0 4px; color: var(--house); font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }.house-leader-card h3 { overflow: hidden; margin: 0 0 5px; color: var(--ink); font-size: 15px; text-overflow: ellipsis; white-space: nowrap; }.house-leader-card span:not(.leader-mark) { color: var(--muted); font-size: 12px; }
 .house-card { display: grid; grid-template-rows: 240px minmax(144px, 1fr) auto; overflow: hidden; min-height: 436px; border: 1px solid var(--line); border-top: 5px solid var(--house); border-radius: 17px; background: var(--card); box-shadow: 0 2px 0 rgba(24,35,31,.035); transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
 a.house-card:hover { transform: translateY(-3px); border-color: var(--house); box-shadow: 0 15px 30px color-mix(in srgb, var(--house) 17%, transparent); }
 .house-card-art { position: relative; display: grid; min-width: 0; min-height: 0; place-items: center; overflow: hidden; background: var(--house); }
@@ -129,6 +130,7 @@ label { display: grid; gap: 8px; color: var(--ink); font-size: 13px; font-weight
 
 @media (max-width: 600px) {
   .house-card-grid { grid-template-columns: 1fr; gap: 14px; }
+  .house-leaders { width: min(100% - 32px, 1180px); margin-top: 52px; }.house-leader-grid { grid-template-columns: 1fr; }
   .house-card { grid-template-rows: 220px minmax(132px, 1fr) auto; min-height: 400px; }
   .house-card-copy h3 { font-size: 29px; }
   .house-profile { grid-template-columns: 1fr; gap: 24px; margin-top: 24px; }

@@ -12,9 +12,9 @@ const storageKey = "lva-presentation-user";
 export const presentationMode = process.env.NEXT_PUBLIC_PRESENTATION_MODE === "true";
 
 const accounts: Array<PresentationUser & { login: string; password: string }> = [
-  { id: "demo-student", name: "Liliana Netland", role: "student", houseId: "curiositas", login: "liliana.netland", password: "LilianaDemo!2026" },
-  { id: "demo-teacher", name: "Michael Stoner", role: "teacher", houseId: null, login: "michael.stoner", password: "MichaelDemo!2026" },
-  { id: "demo-admin", name: "School Administrator", role: "admin", houseId: null, login: "admin", password: "AdminDemo!2026" }
+  { id: "demo-student", name: "Liliana Netland", role: "student", houseId: "curiositas", login: "liliana.netland", password: "LilianaHouse!2026" },
+  { id: "demo-teacher", name: "Michael Stoner", role: "teacher", houseId: null, login: "michael.stoner", password: "MichaelHouse!2026" },
+  { id: "demo-admin", name: "School Administrator", role: "admin", houseId: null, login: "admin", password: "AdminHouses!2026" }
 ];
 
 export function signInForPresentation(login: string, password: string): boolean {

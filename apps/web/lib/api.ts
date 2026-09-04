@@ -17,15 +17,19 @@ export type StudentLeader = {
   totalPoints: number;
 };
 
+export type HouseLeader = StudentLeader & { houseId: string };
+
 export type Leaderboard = {
   school: { name: string; slug: string } | null;
   houses: House[];
   studentLeaders: StudentLeader[];
+  houseLeaders: HouseLeader[];
   isPreview?: boolean;
 };
 
 export const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? (process.env.NODE_ENV === "production" ? "" : "http://localhost:4000");
 export const serverApiUrl = (process.env.API_INTERNAL_URL ?? apiUrl) || "http://localhost:4000";
+export const presentationMode = process.env.NEXT_PUBLIC_PRESENTATION_MODE === "true";
 
 const previewLeaderboard: Leaderboard = {
   school: { name: "Leonardo V Academy Houses", slug: "leonardo-v-academy-houses" },
@@ -36,19 +40,39 @@ const previewLeaderboard: Leaderboard = {
     { id: "00000000-0000-4000-8000-000000000004", name: "Sapientia", color: "#602889", iconUrl: "/house-emblems/sapientia-mark-v5.png", meaning: "Wisdom", symbol: "Owl", description: "Wisdom grows through thoughtful learning, perspective and purposeful choices.", totalPoints: 960, studentCount: 39 }
   ],
   studentLeaders: [
-    { name: "Jordan L.", houseName: "Aster", houseColor: "#5B5CE2", totalPoints: 215 },
-    { name: "Mia R.", houseName: "Cedar", houseColor: "#0E8F6A", totalPoints: 202 },
-    { name: "Kai S.", houseName: "Ember", houseColor: "#D65A34", totalPoints: 194 }
+    { name: "Liliana Netland", houseName: "Curiositas", houseColor: "#FFDA61", totalPoints: 75 }
+  ],
+  houseLeaders: [
+    { houseId: "00000000-0000-4000-8000-000000000001", name: "Liliana Netland", houseName: "Curiositas", houseColor: "#FFDA61", totalPoints: 75 }
   ],
   isPreview: true
 };
 
+function presentationLeaderboard(): Leaderboard {
+  const basePath = process.env.GITHUB_ACTIONS === "true" ? "/lva-houses" : "";
+  return {
+    ...previewLeaderboard,
+    isPreview: false,
+    houses: previewLeaderboard.houses.map((house) => ({ ...house, iconUrl: house.iconUrl ? `${basePath}${house.iconUrl}` : null }))
+  };
+}
+
 export async function getLeaderboard(): Promise<Leaderboard> {
+  if (presentationMode) return presentationLeaderboard();
   try {
     const response = await fetch(`${serverApiUrl}/api/v1/houses/leaderboard`, { cache: "no-store" });
-    if (!response.ok) return process.env.NODE_ENV === "development" ? previewLeaderboard : { school: null, houses: [], studentLeaders: [] };
+    if (!response.ok) return process.env.NODE_ENV === "development" || presentationMode ? { ...previewLeaderboard, isPreview: !presentationMode } : { school: null, houses: [], studentLeaders: [], houseLeaders: [] };
     return response.json() as Promise<Leaderboard>;
   } catch {
-    return process.env.NODE_ENV === "development" ? previewLeaderboard : { school: null, houses: [], studentLeaders: [] };
+    return process.env.NODE_ENV === "development" || presentationMode ? { ...previewLeaderboard, isPreview: !presentationMode } : { school: null, houses: [], studentLeaders: [], houseLeaders: [] };
   }
+}
+
+export function getPresentationHouse(id: string): House | null {
+  if (!presentationMode) return null;
+  return presentationLeaderboard().houses.find((house) => house.id === id) ?? null;
+}
+
+export function presentationHouseIds() {
+  return previewLeaderboard.houses.map((house) => ({ id: house.id }));
 }

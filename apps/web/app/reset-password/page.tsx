@@ -1,6 +1,7 @@
+import { Suspense } from "react";
 import { AuthForm } from "../../components/auth-forms";
+import { ResetPasswordClient } from "./reset-password-client";
 
-export default async function ResetPasswordPage({ searchParams }: { searchParams: Promise<{ token?: string }> }) {
-  const { token } = await searchParams;
-  return <AuthForm mode="reset" resetToken={token} />;
+export default function ResetPasswordPage() {
+  return <Suspense fallback={<AuthForm mode="reset" />}><ResetPasswordClient /></Suspense>;
 }

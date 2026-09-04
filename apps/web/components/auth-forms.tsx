@@ -74,7 +74,7 @@ export function AuthForm({ mode, resetToken }: { mode: Mode; resetToken?: string
   const isReset = mode === "reset";
   const invalidReset = isReset && !resetToken;
   const heading = isSetup ? "Create the school administrator" : isForgot ? "Reset your password" : isReset ? "Choose a new password" : "Enter your portal";
-  const eyebrow = isSetup ? "First-time setup" : isForgot || isReset ? "Account recovery" : "Secure sign in";
+  const eyebrow = isSetup ? "First-time setup" : isForgot || isReset ? "Account recovery" : "Portal sign in";
   const buttonText = isSetup ? "Create administrator" : isForgot ? "Send reset link" : isReset ? "Save new password" : "Sign in";
   const description = isSetup
     ? "Create the first administrator account. Keep the one-time setup token in your school password manager."

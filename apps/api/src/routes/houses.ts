@@ -39,7 +39,18 @@ export async function houseRoutes(app: FastifyInstance) {
       LIMIT 5
     `;
     const studentLeaders = studentRows.map((student) => ({ ...student, name: publicStudentName(student.name) }));
-    return reply.send({ school: { name: school.name, slug: school.slug }, houses, studentLeaders });
+    const houseLeaderRows = await sql<Array<{ houseId: string; name: string; houseName: string; houseColor: string; totalPoints: number }>>`
+      SELECT DISTINCT ON (h.id) h.id AS "houseId", u.name, h.name AS "houseName", h.color AS "houseColor",
+        COALESCE(SUM(a.points), 0)::int AS "totalPoints"
+      FROM houses h
+      JOIN users u ON u.house_id = h.id AND u.role = 'student' AND u.is_active = true
+      LEFT JOIN point_awards a ON a.student_id = u.id
+      WHERE h.school_id = ${school.id}
+      GROUP BY h.id, u.id, u.name
+      ORDER BY h.id, "totalPoints" DESC, u.name ASC
+    `;
+    const houseLeaders = houseLeaderRows.map((student) => ({ ...student, name: publicStudentName(student.name) }));
+    return reply.send({ school: { name: school.name, slug: school.slug }, houses, studentLeaders, houseLeaders });
   });
 
   app.get("/api/v1/houses/:id/history", async (request, reply) => {
