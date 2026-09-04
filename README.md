@@ -18,7 +18,7 @@ The public presentation site is published through GitHub Pages. Its data is illu
 | Role | Login | Password |
 | --- | --- | --- |
 | Student — Liliana Netland | `liliana.netland` | `LilianaHouse!2026` |
-| Student — Doria the Exploria | `doria.exploria` | `DoriaHouses!2026` |
+| Student — Doria the exploria | `doria.exploria` | `DoriaHouses!2026` |
 | Student — Kanye Wesley | `kanye.wesley` | `KanyeHouses!2026` |
 | Student — Oliver Tree | `oliver.tree` | `OliverHouse!2026` |
 | Teacher — Michael Stoner | `michael.stoner` | `MichaelHouse!2026` |

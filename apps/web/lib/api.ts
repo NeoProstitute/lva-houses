@@ -41,13 +41,13 @@ const previewLeaderboard: Leaderboard = {
   ],
   studentLeaders: [
     { name: "Liliana Netland", houseName: "Curiositas", houseColor: "#FFDA61", totalPoints: 75 },
-    { name: "Doria the Exploria", houseName: "Humanitas", houseColor: "#EE3F6C", totalPoints: 68 },
+    { name: "Doria the exploria", houseName: "Humanitas", houseColor: "#EE3F6C", totalPoints: 68 },
     { name: "Kanye Wesley", houseName: "Veritas", houseColor: "#4677E6", totalPoints: 62 },
     { name: "Oliver Tree", houseName: "Sapientia", houseColor: "#602889", totalPoints: 58 }
   ],
   houseLeaders: [
     { houseId: "00000000-0000-4000-8000-000000000001", name: "Liliana Netland", houseName: "Curiositas", houseColor: "#FFDA61", totalPoints: 75 },
-    { houseId: "00000000-0000-4000-8000-000000000002", name: "Doria the Exploria", houseName: "Humanitas", houseColor: "#EE3F6C", totalPoints: 68 },
+    { houseId: "00000000-0000-4000-8000-000000000002", name: "Doria the exploria", houseName: "Humanitas", houseColor: "#EE3F6C", totalPoints: 68 },
     { houseId: "00000000-0000-4000-8000-000000000003", name: "Kanye Wesley", houseName: "Veritas", houseColor: "#4677E6", totalPoints: 62 },
     { houseId: "00000000-0000-4000-8000-000000000004", name: "Oliver Tree", houseName: "Sapientia", houseColor: "#602889", totalPoints: 58 }
   ],
