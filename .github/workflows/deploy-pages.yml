@@ -25,7 +25,6 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - uses: actions/configure-pages@v5
       - run: npm ci
       - run: npm run build --workspace=@leonardo-v-academy/web
       - uses: actions/upload-pages-artifact@v4
