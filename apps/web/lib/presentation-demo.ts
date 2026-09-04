@@ -49,7 +49,7 @@ export function signOutForPresentation() {
 
 const houses = [
   { id: "curiositas", name: "Curiositas", color: "#FFDA61", iconUrl: "/house-emblems/curiositas-mark-v5.png", meaning: "Curiosity", symbol: "Set of keys", description: "Illumination begins with questions, discovery and the courage to unlock new knowledge.", totalPoints: 75, studentCount: 1 },
-  { id: "humanitas", name: "Humanitas", color: "#AA2626", iconUrl: "/house-emblems/humanitas-mark-v2.png", meaning: "Empathy", symbol: "Hand", description: "Empathy brings people together through care, understanding and shared humanity.", totalPoints: 68, studentCount: 1 },
+  { id: "humanitas", name: "Humanitas", color: "#AA2626", iconUrl: "/house-emblems/humanitas-mark-v3.png", meaning: "Empathy", symbol: "Hand", description: "Empathy brings people together through care, understanding and shared humanity.", totalPoints: 68, studentCount: 1 },
   { id: "veritas", name: "Veritas", color: "#4677E6", iconUrl: "/house-emblems/veritas-mark-v5.png", meaning: "Honesty", symbol: "Mirror", description: "Honesty asks us to reflect clearly, speak truthfully and act with integrity.", totalPoints: 62, studentCount: 1 },
   { id: "sapientia", name: "Sapientia", color: "#602889", iconUrl: "/house-emblems/sapientia-mark-v5.png", meaning: "Wisdom", symbol: "Owl", description: "Wisdom grows through thoughtful learning, perspective and purposeful choices.", totalPoints: 58, studentCount: 1 }
 ];
