@@ -34,16 +34,22 @@ export const presentationMode = process.env.NEXT_PUBLIC_PRESENTATION_MODE === "t
 const previewLeaderboard: Leaderboard = {
   school: { name: "Leonardo V Academy Houses", slug: "leonardo-v-academy-houses" },
   houses: [
-    { id: "00000000-0000-4000-8000-000000000001", name: "Curiositas", color: "#FFDA61", iconUrl: "/house-emblems/curiositas-mark-v5.png", meaning: "Curiosity", symbol: "Set of keys", description: "Illumination begins with questions, discovery and the courage to unlock new knowledge.", totalPoints: 1280, studentCount: 38 },
-    { id: "00000000-0000-4000-8000-000000000002", name: "Humanitas", color: "#EE3F6C", iconUrl: null, meaning: "Empathy", symbol: "Hand", description: "Empathy brings people together through care, understanding and shared humanity.", totalPoints: 1175, studentCount: 40 },
-    { id: "00000000-0000-4000-8000-000000000003", name: "Veritas", color: "#4677E6", iconUrl: "/house-emblems/veritas-mark-v5.png", meaning: "Honesty", symbol: "Mirror", description: "Honesty asks us to reflect clearly, speak truthfully and act with integrity.", totalPoints: 1090, studentCount: 37 },
-    { id: "00000000-0000-4000-8000-000000000004", name: "Sapientia", color: "#602889", iconUrl: "/house-emblems/sapientia-mark-v5.png", meaning: "Wisdom", symbol: "Owl", description: "Wisdom grows through thoughtful learning, perspective and purposeful choices.", totalPoints: 960, studentCount: 39 }
+    { id: "00000000-0000-4000-8000-000000000001", name: "Curiositas", color: "#FFDA61", iconUrl: "/house-emblems/curiositas-mark-v5.png", meaning: "Curiosity", symbol: "Set of keys", description: "Illumination begins with questions, discovery and the courage to unlock new knowledge.", totalPoints: 75, studentCount: 1 },
+    { id: "00000000-0000-4000-8000-000000000002", name: "Humanitas", color: "#EE3F6C", iconUrl: null, meaning: "Empathy", symbol: "Hand", description: "Empathy brings people together through care, understanding and shared humanity.", totalPoints: 68, studentCount: 1 },
+    { id: "00000000-0000-4000-8000-000000000003", name: "Veritas", color: "#4677E6", iconUrl: "/house-emblems/veritas-mark-v5.png", meaning: "Honesty", symbol: "Mirror", description: "Honesty asks us to reflect clearly, speak truthfully and act with integrity.", totalPoints: 62, studentCount: 1 },
+    { id: "00000000-0000-4000-8000-000000000004", name: "Sapientia", color: "#602889", iconUrl: "/house-emblems/sapientia-mark-v5.png", meaning: "Wisdom", symbol: "Owl", description: "Wisdom grows through thoughtful learning, perspective and purposeful choices.", totalPoints: 58, studentCount: 1 }
   ],
   studentLeaders: [
-    { name: "Liliana Netland", houseName: "Curiositas", houseColor: "#FFDA61", totalPoints: 75 }
+    { name: "Liliana Netland", houseName: "Curiositas", houseColor: "#FFDA61", totalPoints: 75 },
+    { name: "Doria the Exploria", houseName: "Humanitas", houseColor: "#EE3F6C", totalPoints: 68 },
+    { name: "Kanye Wesley", houseName: "Veritas", houseColor: "#4677E6", totalPoints: 62 },
+    { name: "Oliver Tree", houseName: "Sapientia", houseColor: "#602889", totalPoints: 58 }
   ],
   houseLeaders: [
-    { houseId: "00000000-0000-4000-8000-000000000001", name: "Liliana Netland", houseName: "Curiositas", houseColor: "#FFDA61", totalPoints: 75 }
+    { houseId: "00000000-0000-4000-8000-000000000001", name: "Liliana Netland", houseName: "Curiositas", houseColor: "#FFDA61", totalPoints: 75 },
+    { houseId: "00000000-0000-4000-8000-000000000002", name: "Doria the Exploria", houseName: "Humanitas", houseColor: "#EE3F6C", totalPoints: 68 },
+    { houseId: "00000000-0000-4000-8000-000000000003", name: "Kanye Wesley", houseName: "Veritas", houseColor: "#4677E6", totalPoints: 62 },
+    { houseId: "00000000-0000-4000-8000-000000000004", name: "Oliver Tree", houseName: "Sapientia", houseColor: "#602889", totalPoints: 58 }
   ],
   isPreview: true
 };
