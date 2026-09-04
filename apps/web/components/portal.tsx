@@ -4,6 +4,7 @@ import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import { apiUrl, type House } from "../lib/api";
 import { withCsrfHeader } from "../lib/csrf";
+import { presentationMode, presentationResponse, signOutForPresentation } from "../lib/presentation-demo";
 import { Logo } from "./logo";
 import { ThemeToggle } from "./theme-toggle";
 
@@ -16,6 +17,7 @@ type AdminUser = { id: string; name: string; username: string; email: string; ro
 type AdminCategory = Category & { isActive: boolean };
 
 async function request<T>(path: string, options: RequestInit = {}, retry = true): Promise<T> {
+  if (presentationMode) return presentationResponse(path) as T;
   const headers = new Headers(options.headers);
   const isFormData = typeof FormData !== "undefined" && options.body instanceof FormData;
   if (options.body && !isFormData && !headers.has("content-type")) headers.set("content-type", "application/json");
@@ -165,14 +167,14 @@ export function Portal() {
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Please sign in again."); } finally { setLoading(false); }
   }
   useEffect(() => { void load(); }, []);
-  async function signOut() { await request("/api/v1/auth/logout", { method: "POST" }, false).catch(() => undefined); window.location.assign("/"); }
+  async function signOut() { if (presentationMode) signOutForPresentation(); else await request("/api/v1/auth/logout", { method: "POST" }, false).catch(() => undefined); window.location.assign("/"); }
   if (loading) return <main className="loading-screen"><Logo /><p>Opening your portal…</p></main>;
   if (!user) return <main className="loading-screen"><Logo /><h1>Session needed</h1><p>{error}</p><Link className="button button-dark" href="/login">Sign in <span>→</span></Link></main>;
   const roleCopy = user.role === "student" ? "Your contribution, made visible." : user.role === "teacher" ? "Make recognition feel timely and specific." : "A clear system needs thoughtful stewardship.";
   const hasCategoryProgress = categorySummary.some((category) => category.awardCount > 0);
   const strongestCategory = hasCategoryProgress ? categorySummary[0] : null;
   const focusCategory = hasCategoryProgress ? categorySummary[categorySummary.length - 1] : null;
-  return <main className="portal"><header className="portal-header"><Logo /><div className="portal-actions"><ThemeToggle /><span className={`role role-${user.role}`}>{user.role}</span><button className="signout" onClick={signOut}>Sign out</button></div></header><section className="portal-intro"><div><p className="eyebrow">Hello, {user.name.split(" ")[0]}</p><h1>{roleCopy}</h1></div><p>{user.role === "student" ? "Your points and the reasons behind them are all here." : "Your actions are recorded clearly, so the whole school can trust the system."}</p></section>
+  return <main className="portal"><header className="portal-header"><Logo /><div className="portal-actions"><ThemeToggle /><span className={`role role-${user.role}`}>{user.role}</span><button className="signout" onClick={signOut}>Sign out</button></div></header>{presentationMode && <p className="form-note">Local presentation mode — illustrative data only.</p>}<section className="portal-intro"><div><p className="eyebrow">Hello, {user.name.split(" ")[0]}</p><h1>{roleCopy}</h1></div><p>{user.role === "student" ? "Your points and the reasons behind them are all here." : "Your actions are recorded clearly, so the whole school can trust the system."}</p></section>
     <section className="quick-stats">{user.role === "student" ? <><div><span>Your points</span><strong>{total.toLocaleString("en-US")}</strong><small>points to date</small></div><div><span>Strongest category</span><strong>{strongestCategory?.name ?? "—"}</strong><small>{strongestCategory ? `${strongestCategory.totalPoints.toLocaleString("en-US")} points` : "Your progress will appear here"}</small></div><div><span>Next opportunity</span><strong>{focusCategory?.name ?? "—"}</strong><small>{focusCategory ? "A category to keep building" : "Every contribution counts"}</small></div></> : <><div><span>{user.role === "teacher" ? "Awards given" : "Ledger entries"}</span><strong>{awards.length.toLocaleString("en-US")}</strong><small>in the latest 100 entries</small></div><div><span>Leading house</span><strong>{houses[0]?.name ?? "—"}</strong><small>{houses[0] ? `${houses[0].totalPoints.toLocaleString("en-US")} points` : "No points yet"}</small></div><div><span>Built for</span><strong>{user.role === "teacher" ? "Recognition" : "Stewardship"}</strong><small>Clear roles, clear records</small></div></>}</section>
     {(user.role === "teacher" || user.role === "admin") && <TeacherComposer onAwarded={load} />}
     {user.role === "student" && <StudentProgress categories={categorySummary} />}
