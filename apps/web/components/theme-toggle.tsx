@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useLanguage } from "./language-provider";
 
 type Theme = "light" | "dark";
 
@@ -11,6 +12,7 @@ function applyTheme(theme: Theme) {
 }
 
 export function ThemeToggle() {
+  const { text } = useLanguage();
   const [theme, setTheme] = useState<Theme>("light");
 
   useEffect(() => {
@@ -34,8 +36,8 @@ export function ThemeToggle() {
   }
 
   const isDark = theme === "dark";
-  return <button type="button" className="theme-toggle" onClick={toggleTheme} aria-pressed={isDark} aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"} title={isDark ? "Switch to light theme" : "Switch to dark theme"}>
+  return <button type="button" className="theme-toggle" onClick={toggleTheme} aria-pressed={isDark} aria-label={isDark ? text.switchLight : text.switchDark} title={isDark ? text.switchLight : text.switchDark}>
     {isDark ? <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" /></svg> : <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.4 15.3A8.5 8.5 0 0 1 8.7 3.6 8.5 8.5 0 1 0 20.4 15.3Z" /></svg>}
-    <span>{isDark ? "Light" : "Dark"}</span>
+    <span>{isDark ? text.light : text.dark}</span>
   </button>;
 }

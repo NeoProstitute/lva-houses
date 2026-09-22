@@ -19,3 +19,5 @@ test-results/
 playwright-report/
 *-preview.png
 *-check.png
+AGENTS.md
+CLAUDE.md

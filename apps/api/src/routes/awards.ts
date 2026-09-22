@@ -87,16 +87,17 @@ export async function awardRoutes(app: FastifyInstance) {
     return reply.code(201).send({ award });
   });
 
-  app.post("/api/v1/awards/:id/reverse", { preHandler: allowRoles("admin") }, async (request, reply) => {
+  app.post("/api/v1/awards/:id/reverse", { preHandler: allowRoles("teacher", "admin") }, async (request, reply) => {
     const parsed = idParams.safeParse(request.params);
     if (!parsed.success) return reply.code(400).send({ error: "Invalid award id" });
     const user = request.user;
     const reversal = await sql.begin(async (tx) => {
-      const [original] = await tx<{ id: string; student_id: string; house_id: string; category_id: string; points: number }[]>`
-        SELECT id, student_id, house_id, category_id, points
+      const [original] = await tx<{ id: string; student_id: string; house_id: string; category_id: string; points: number; awarded_by: string }[]>`
+        SELECT id, student_id, house_id, category_id, points, awarded_by
         FROM point_awards WHERE id = ${parsed.data.id} AND school_id = ${user.schoolId} AND reversal_of IS NULL
       `;
       if (!original) throw new Error("AWARD_NOT_FOUND");
+      if (user.role === "teacher" && original.awarded_by !== user.id) throw new Error("AWARD_NOT_OWNED");
       const [existing] = await tx<{ id: string }[]>`SELECT id FROM point_awards WHERE reversal_of = ${original.id}`;
       if (existing) throw new Error("ALREADY_REVERSED");
       const [created] = await tx`
@@ -107,10 +108,16 @@ export async function awardRoutes(app: FastifyInstance) {
       `;
       return created;
     }).catch((error: Error) => {
-      if (["AWARD_NOT_FOUND", "ALREADY_REVERSED"].includes(error.message)) return { error: error.message };
+      if (["AWARD_NOT_FOUND", "ALREADY_REVERSED", "AWARD_NOT_OWNED"].includes(error.message)) return { error: error.message };
       throw error;
     });
-    if ("error" in reversal) return reply.code(reversal.error === "AWARD_NOT_FOUND" ? 404 : 409).send({ error: reversal.error === "AWARD_NOT_FOUND" ? "Award not found" : "This award has already been reversed" });
+    if ("error" in reversal) {
+      const status = reversal.error === "AWARD_NOT_FOUND" ? 404 : reversal.error === "AWARD_NOT_OWNED" ? 403 : 409;
+      const message = reversal.error === "AWARD_NOT_FOUND" ? "Award not found"
+        : reversal.error === "AWARD_NOT_OWNED" ? "Teachers can correct only their own awards"
+          : "This award has already been reversed";
+      return reply.code(status).send({ error: message });
+    }
     await writeAuditEvent({ schoolId: user.schoolId, actorId: user.id, action: "award.reversed", targetType: "point_award", targetId: parsed.data.id, metadata: { reversalId: reversal.id } });
     return reply.code(201).send({ reversal });
   });

@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
   images: { unoptimized: true },
   poweredByHeader: false,
   reactStrictMode: true,
-  // Keep Turbopack inside this distributable project, not its Codex parent folder.
+  // Keep Turbopack inside this distributable project.
   turbopack: { root: resolve(import.meta.dirname, "../..") }
 };
 

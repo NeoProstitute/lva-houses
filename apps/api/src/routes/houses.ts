@@ -18,11 +18,14 @@ export async function houseRoutes(app: FastifyInstance) {
     if (!school) return reply.send({ school: null, houses: [], studentLeaders: [] });
     const houses = await sql`
       SELECT h.id, h.name, h.color, h.icon_url AS "iconUrl", h.meaning, h.symbol, h.description,
-        COALESCE(SUM(a.points), 0)::int AS "totalPoints",
+        COALESCE((
+          SELECT SUM(a.points)
+          FROM point_awards a
+          WHERE a.house_id = h.id
+        ), 0)::int AS "totalPoints",
         COUNT(DISTINCT u.id)::int AS "studentCount"
       FROM houses h
       LEFT JOIN users u ON u.house_id = h.id AND u.role = 'student' AND u.is_active = true
-      LEFT JOIN point_awards a ON a.house_id = h.id
       WHERE h.school_id = ${school.id}
       GROUP BY h.id
       ORDER BY "totalPoints" DESC, h.name ASC
