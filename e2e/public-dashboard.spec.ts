@@ -36,6 +36,7 @@ test("public dashboard supports English and Czech without horizontal overflow", 
   await expect(page.getByText("Vedoucí tým", { exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Přehled všech týmů" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Prohlédnout: Curiositas" })).toBeVisible();
+  await expect(page.getByText("Zatím bez studentského lídra", { exact: true })).toHaveCount(3);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBeTruthy();
 
   await page.getByRole("link", { name: "Prohlédnout: Curiositas" }).click();
