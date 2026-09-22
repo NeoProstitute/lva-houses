@@ -18,6 +18,9 @@ test("public dashboard supports English and Czech without horizontal overflow", 
   await expect(page.getByRole("link", { name: "Explore: Humanitas" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Explore: Veritas" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Explore: Sapientia" })).toBeVisible();
+  await expect(page.locator(".house-card-meta strong")).toHaveCount(4);
+  await expect(page.locator(".house-card-meta strong")).toHaveText(["0 points", "0 points", "0 points", "0 points"]);
+  await expect(page.getByText("Liliana Netland", { exact: true })).toHaveCount(2);
   await expect(page.locator(".house-card-art img")).toHaveCount(4);
   await expect(page.locator(".house-card-art-color")).toHaveCount(0);
   expect(await page.locator(".house-card-art img").evaluateAll((images) => images.every((image) => image.complete && image.naturalWidth > 0))).toBeTruthy();

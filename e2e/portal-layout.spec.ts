@@ -18,3 +18,12 @@ for (const [login, password] of accounts) {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBeTruthy();
   });
 }
+
+test("an unknown account cannot sign in", async ({ page }) => {
+  await page.goto("/login");
+  await page.locator('input[name="login"]').fill("unknown.account");
+  await page.locator('input[name="password"]').fill("UnknownHouse!2026");
+  await page.locator(".auth-card button").click();
+  await expect(page).toHaveURL(/\/login$/);
+  await expect(page.getByText("Use one of the presentation accounts provided by the presenter.")).toBeVisible();
+});

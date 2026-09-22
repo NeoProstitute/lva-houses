@@ -124,16 +124,7 @@ const builtins: Record<Language, Record<string, string>> = {
     "Empathy brings people together through care, understanding and shared humanity.": "Empatie spojuje lidi prostřednictvím péče, porozumění a společné lidskosti.",
     "Honesty asks us to reflect clearly, speak truthfully and act with integrity.": "Čestnost nás vede k jasnému uvažování, pravdivému jednání a osobní integritě.",
     "Wisdom grows through thoughtful learning, perspective and purposeful choices.": "Moudrost roste díky promyšlenému učení, nadhledu a uvážlivým rozhodnutím.",
-    Learning: "Studium", Behaviour: "Chování", Projects: "Projekty", Participation: "Aktivita v hodinách", "Lesson participation": "Aktivita v hodinách",
-    "Excellent research and thoughtful questions": "Výborná rešerše a promyšlené otázky",
-    "Clear and confident project presentation": "Srozumitelná a sebejistá prezentace projektu",
-    "Helpful contribution during group work": "Přínosná spolupráce při skupinové práci",
-    "Kind leadership during a team project": "Ohleduplné vedení při týmovém projektu",
-    "Honest and constructive class reflection": "Upřímná a konstruktivní reflexe výuky",
-    "Thoughtful solution to a complex task": "Promyšlené řešení složitého úkolu",
-    "Helpful project contribution": "Přínosná práce na projektu",
-    "Reliable lesson participation": "Spolehlivá aktivita v hodinách",
-    "Useful perspective in discussion": "Přínosný pohled v diskusi"
+    Learning: "Studium", Behaviour: "Chování", Projects: "Projekty", Participation: "Aktivita v hodinách", "Lesson participation": "Aktivita v hodinách"
   }
 };
 

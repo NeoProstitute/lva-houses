@@ -27,6 +27,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
       - run: npm run build --workspace=@leonardo-v-academy/web
       - uses: actions/upload-pages-artifact@v4
         with:

@@ -8,7 +8,7 @@ export type PresentationAward = { id: string; studentId: string; points: number;
 type PresentationState = { accounts: PresentationAccount[]; houses: PresentationHouse[]; categories: PresentationCategory[]; awards: PresentationAward[] };
 
 const sessionStorageKey = "lva-presentation-user";
-const stateStorageKey = "lva-presentation-state-v2";
+const stateStorageKey = "lva-presentation-state-v3";
 export const presentationMode = process.env.NEXT_PUBLIC_PRESENTATION_MODE === "true";
 const presentationBasePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
@@ -21,9 +21,6 @@ function presentationAssetPath(path: string | null) {
 const initialState: PresentationState = {
   accounts: [
     { id: "demo-liliana", name: "Liliana Netland", role: "student", houseId: "00000000-0000-4000-8000-000000000001", login: "liliana.netland", password: "LilianaHouse!2026", email: "liliana.netland@lva-demo.local", isActive: true },
-    { id: "demo-doria", name: "Doria the exploria", role: "student", houseId: "00000000-0000-4000-8000-000000000002", login: "doria.exploria", password: "DoriaHouses!2026", email: "doria.exploria@lva-demo.local", isActive: true },
-    { id: "demo-kanye", name: "Kanye Wesley", role: "student", houseId: "00000000-0000-4000-8000-000000000003", login: "kanye.wesley", password: "KanyeHouses!2026", email: "kanye.wesley@lva-demo.local", isActive: true },
-    { id: "demo-oliver", name: "Oliver Tree", role: "student", houseId: "00000000-0000-4000-8000-000000000004", login: "oliver.tree", password: "OliverHouse!2026", email: "oliver.tree@lva-demo.local", isActive: true },
     { id: "demo-teacher", name: "Michael Stoner", role: "teacher", houseId: null, login: "michael.stoner", password: "MichaelHouse!2026", email: "michael.stoner@lva-demo.local", isActive: true },
     { id: "demo-admin", name: "School Administrator", role: "admin", houseId: null, login: "admin", password: "AdminHouses!2026", email: "admin@lva-demo.local", isActive: true }
   ],
@@ -36,17 +33,7 @@ const initialState: PresentationState = {
   categories: [
     { id: "learning", name: "Learning", maxPoints: 100, isActive: true }, { id: "behaviour", name: "Behaviour", maxPoints: 100, isActive: true }, { id: "projects", name: "Projects", maxPoints: 100, isActive: true }, { id: "participation", name: "Participation", maxPoints: 100, isActive: true }
   ],
-  awards: [
-    { id: "award-1", studentId: "demo-liliana", points: 35, reason: "Excellent research and thoughtful questions", createdAt: "2026-09-02T09:00:00.000Z", categoryName: "Learning", studentName: "Liliana Netland", awardedByName: "Michael Stoner", houseName: "Curiositas", houseColor: "#FFDA61", reversalOf: null },
-    { id: "award-2", studentId: "demo-liliana", points: 25, reason: "Clear and confident project presentation", createdAt: "2026-08-28T09:00:00.000Z", categoryName: "Projects", studentName: "Liliana Netland", awardedByName: "Michael Stoner", houseName: "Curiositas", houseColor: "#FFDA61", reversalOf: null },
-    { id: "award-3", studentId: "demo-liliana", points: 15, reason: "Helpful contribution during group work", createdAt: "2026-08-23T09:00:00.000Z", categoryName: "Behaviour", studentName: "Liliana Netland", awardedByName: "Michael Stoner", houseName: "Curiositas", houseColor: "#FFDA61", reversalOf: null },
-    { id: "award-4", studentId: "demo-doria", points: 40, reason: "Kind leadership during a team project", createdAt: "2026-09-01T09:00:00.000Z", categoryName: "Behaviour", studentName: "Doria the exploria", awardedByName: "Michael Stoner", houseName: "Humanitas", houseColor: "#AA2626", reversalOf: null },
-    { id: "award-5", studentId: "demo-doria", points: 28, reason: "Helpful project contribution", createdAt: "2026-08-27T09:00:00.000Z", categoryName: "Projects", studentName: "Doria the exploria", awardedByName: "Michael Stoner", houseName: "Humanitas", houseColor: "#AA2626", reversalOf: null },
-    { id: "award-6", studentId: "demo-kanye", points: 32, reason: "Honest and constructive class reflection", createdAt: "2026-08-31T09:00:00.000Z", categoryName: "Learning", studentName: "Kanye Wesley", awardedByName: "Michael Stoner", houseName: "Veritas", houseColor: "#4677E6", reversalOf: null },
-    { id: "award-7", studentId: "demo-kanye", points: 30, reason: "Reliable lesson participation", createdAt: "2026-08-26T09:00:00.000Z", categoryName: "Participation", studentName: "Kanye Wesley", awardedByName: "Michael Stoner", houseName: "Veritas", houseColor: "#4677E6", reversalOf: null },
-    { id: "award-8", studentId: "demo-oliver", points: 38, reason: "Thoughtful solution to a complex task", createdAt: "2026-08-30T09:00:00.000Z", categoryName: "Learning", studentName: "Oliver Tree", awardedByName: "Michael Stoner", houseName: "Sapientia", houseColor: "#602889", reversalOf: null },
-    { id: "award-9", studentId: "demo-oliver", points: 20, reason: "Useful perspective in discussion", createdAt: "2026-08-25T09:00:00.000Z", categoryName: "Participation", studentName: "Oliver Tree", awardedByName: "Michael Stoner", houseName: "Sapientia", houseColor: "#602889", reversalOf: null }
-  ]
+  awards: []
 };
 
 function clone<T>(value: T): T { return JSON.parse(JSON.stringify(value)) as T; }
