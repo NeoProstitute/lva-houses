@@ -13,6 +13,10 @@ export const presentationMode = process.env.NEXT_PUBLIC_PRESENTATION_MODE === "t
 const presentationBasePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 export function presentationPath(path: string) { return `${presentationBasePath}${path}`; }
+function presentationAssetPath(path: string | null) {
+  if (!path || !presentationBasePath || /^(?:https?:|data:)/.test(path) || path.startsWith(`${presentationBasePath}/`)) return path;
+  return `${presentationBasePath}${path.startsWith("/") ? path : `/${path}`}`;
+}
 
 const initialState: PresentationState = {
   accounts: [
@@ -73,7 +77,7 @@ function houseSummaries(state: PresentationState) {
   return state.houses.map((house) => {
     const memberIds = state.accounts.filter((account) => account.role === "student" && account.isActive && account.houseId === house.id).map((account) => account.id);
     const totalPoints = state.awards.filter((award) => memberIds.includes(award.studentId) && !award.reversalOf).reduce((total, award) => total + award.points, 0);
-    return { ...house, totalPoints, studentCount: memberIds.length };
+    return { ...house, iconUrl: presentationAssetPath(house.iconUrl), totalPoints, studentCount: memberIds.length };
   }).sort((a, b) => b.totalPoints - a.totalPoints || a.name.localeCompare(b.name));
 }
 function studentLeaders(state: PresentationState) {
